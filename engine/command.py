@@ -57,23 +57,55 @@ def takeCommand():
 
 
 @eel.expose
-def allCommands():
-
-    query = takeCommand()
-    print(query)
-
-    if "open" in query:
-        from engine.features import openCommand
-        openCommand(query)
+def allCommands(message = 1):
+    
+    if message == 1:
+        query = takeCommand()
+        print(f"[User Command] {query}")
         
-    elif "on youtube":
-        from engine.features import playYouTube
-        playYouTube(query)
-
     else:
-        eel.DisplayMessage(
-            "I didn't understand that command. Please try again.")
-        speak("I didn't understand that command. Please try again.")
+        query = message
+    
+    try:
+    
+        if "open" in query:
+            from engine.features import openCommand
+            openCommand(query)
 
+        elif "on youtube" in query:
+            from engine.features import PlayYouTube
+            PlayYouTube(query)
+
+        elif "send message" in query or "phone call" in query or "video call" in query:
+            from engine.features import findContact, WhatsApp
+            message = ""
+            mobile_no, name = findContact(query)
+
+            if mobile_no != 0:
+                if "send message" in query:
+                    flag = "message"
+                    speak("What's the message?")
+                    message = takeCommand()
+
+                elif "phone call" in query:
+                    flag = "call"
+                    message = ""  # No message needed for call
+
+                else:
+                    flag = "video"
+                    message = ""  # No message needed for video call
+
+                WhatsApp(mobile_no, message, flag, name)
+
+        else:
+            message = "I didn't understand that command. Please try again."
+            eel.DisplayMessage(message)
+            speak(message)
+
+    except Exception as e:
+        print(f"[allCommands ERROR] {e}")
+        eel.DisplayMessage(
+            "Something went wrong while processing your command.")
+        speak("Something went wrong while processing your command.")
 
     eel.ShowHood()
